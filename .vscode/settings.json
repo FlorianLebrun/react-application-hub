@@ -1,0 +1,19 @@
+// Highly recommended vscode extensions:
+// * Flow Language Support: 0.4.0
+// * ESLint 1.2.2
+{
+  "flow.useNPMPackagedFlow": true,
+  "eslint.autoFixOnSave": true,
+  "typescript.validate.enable": false,
+  "javascript.validate.enable": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "*.log": true,
+    "*.lock": true,
+    "**/.DS_Store": true,
+    "**/.webpack-cache": true,
+    "**/dist": true
+  }
+}

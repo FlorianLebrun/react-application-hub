@@ -2,6 +2,7 @@
 // * Flow Language Support: 0.4.0
 // * ESLint 1.2.2
 {
+  "window.title": "app-hub",
   "flow.useNPMPackagedFlow": true,
   "eslint.autoFixOnSave": true,
   "typescript.validate.enable": false,

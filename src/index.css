@@ -12,7 +12,7 @@
   border: none;
 }
 
-.react-app-hub>div {
+.react-app-hub .tabs {
   display: flex;
   min-height: 26px;
   flex-direction: row;
@@ -57,7 +57,7 @@
 
 .react-app-hub .tab-item .cross {
   flex: 0 0 auto;
-  float: right;
+  padding-left: 3px;
   color: transparent;
 }
 

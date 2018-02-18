@@ -4,27 +4,40 @@ import "font-awesome/css/font-awesome.min.css"
 import "./index.css"
 
 class FrameInstance {
-  name: string
+  title: string
+  icon: string
   url: string
   node: HTMLIFrameElement
   manifold: FrameManifold
+  menu: Array
 
-  constructor(name: string, url: string, manifold: FrameManifold) {
-    this.name = name
+  constructor(manifold: FrameManifold, url: string, title: string, icon: string) {
+    this.title = title
+    this.icon = icon || "image"
     this.manifold = manifold
     this.node = document.createElement("iframe")
     this.node.style.display = "none";
     this.node.src = this.url = url
   }
   receiveMessage(msg) {
+    const { manifold } = this
     if (msg.redirect) {
       this.node.src = this.url = msg.redirect
     }
     else if (msg.open) {
-      this.manifold.openFrame(msg.open, msg.open, true)
+      const { open } = msg
+      if (typeof open === "string") this.manifold.openFrame(open)
+      else if (typeof open === "object") this.manifold.openFrame(open.url, open.title, open.icon)
     }
-    else if (msg.title) {
-      this.node.title
+    else if (msg.infos) {
+      const { infos } = msg
+      this.title = infos.title || this.title
+      this.icon = infos.icon || this.icon
+      manifold.forceUpdate()
+    }
+    else if (msg.menu) {
+      this.menu = msg.menu
+      manifold.forceUpdate()
     }
     else {
       alert("frame receive" + JSON.stringify(msg))
@@ -49,11 +62,29 @@ class FrameInstance {
   }
 }
 
+class HubMenu extends Component {
+  props: Object
+
+  render() {
+    const { menu } = this.props
+    return (<div className="tab-menu">
+      {menu && menu.map((x, i) => {
+        return (<span key={i} className={"menu-btn fa fa-fw fa-" + x.icon} title={x.title}>
+        </span>)
+      })}
+    </div>)
+  }
+}
+
 class HubItem extends Component {
   props: Object
 
   handleClick = (e) => {
     this.props.frame.select()
+    e.stopPropagation()
+  }
+  handleDblClick = (e) => {
+    window.open(this.props.frame.url)
     e.stopPropagation()
   }
   handleClose = (e) => {
@@ -66,19 +97,15 @@ class HubItem extends Component {
   render() {
     const { frame, isCurrent } = this.props
     const node = frame.node
-    let title
-    try {
-      title = node.contentWindow.document.title
-    }
-    catch (e) { }
     return (<div
-      title={frame.name}
+      title={frame.title ? `${frame.title} (${frame.url})` : frame.url}
       className={isCurrent ? "tab-item current" : "tab-item"}
       onClick={this.handleClick}
+      onDoubleClick={this.handleDblClick}
       onMouseDown={this.handleWheelClose}
     >
-      <span className="icon fa fa-image" />
-      <span className="label">{title || frame.name}</span>
+      <span className={"icon fa fa-" + frame.icon} />
+      <span className="label">{frame.title || frame.url}</span>
       <span className="cross fa fa-times" onClick={this.handleClose} />
     </div>)
   }
@@ -90,9 +117,12 @@ class HubItemTabs extends Component {
   render() {
     const { frames, current, onSelect } = this.props
     return (<div className="tabs">
-      {frames.map((frame, i) => {
-        return (<HubItem key={i} frame={frame} isCurrent={frame === current} onSelect={onSelect} />)
-      })}
+      <div className="tabs-bar">
+        {frames.map((frame, i) => {
+          return (<HubItem key={i} frame={frame} isCurrent={frame === current} onSelect={onSelect} />)
+        })}
+      </div>
+      <HubMenu menu={current && current.menu} />
     </div>)
   }
 }
@@ -104,15 +134,28 @@ class FrameManifold extends Component {
 
   componentWillMount() {
     window.addEventListener("message", this.handleMessage)
+    window.addEventListener("hashchange", this.handleHash)
   }
   componentWillUnmount() {
     window.removeEventListener("message", this.handleMessage)
   }
   componentDidMount() {
-    this.openFrame("localhost:3000", "http://localhost:3000/")
-    this.openFrame("storage-browser-plugin", "http://localhost:9988/#/storage-browser-plugin")
-    this.openFrame("console-plugin", "http://localhost:9988/#/console-plugin")
-    this.openFrame("react", "https://www.qwant.com/?q=react+script&client=opensearch")
+    this.handleHash()
+  }
+  handleHash = () => {
+    const hash = window.location.hash
+    if (hash.charCodeAt(0) === "#".charCodeAt(0)
+      && hash.charCodeAt(1) === "/".charCodeAt(0)
+    ) {
+      const url = hash.substring(2)
+      const frame = this.openFrame(url)
+      if (this.current !== frame) {
+        if (this.current) this.current.display(false)
+        this.current = frame
+        if (this.current) this.current.display(true)
+        this.forceUpdate()
+      }
+    }
   }
   handleMessage = (msg) => {
     try {
@@ -132,14 +175,13 @@ class FrameManifold extends Component {
       }
     }
   }
-  openFrame(name, url, show) {
+  openFrame(url, title, icon) {
     let frame = this.findFrame(url)
     if (!frame) {
-      frame = new FrameInstance(name, url, this)
+      frame = new FrameInstance(this, url, title, icon)
       this.attachFrame(frame)
     }
-    if (show || !this.current) this.selectFrame(frame)
-    else this.forceUpdate()
+    this.selectFrame(frame)
     return frame
   }
   attachFrame(frame: FrameInstance) {
@@ -157,10 +199,7 @@ class FrameManifold extends Component {
   }
   selectFrame = (frame: FrameInstance) => {
     if (this.current !== frame) {
-      if (this.current) this.current.display(false)
-      this.current = frame
-      if (this.current) this.current.display(true)
-      this.forceUpdate()
+      window.location.hash = frame ? "#/" + frame.url : ""
     }
   }
   render() {

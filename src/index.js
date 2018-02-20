@@ -43,8 +43,9 @@ class FrameInstance {
       alert("frame receive" + JSON.stringify(msg))
     }
   }
-  postMessage(msg) {
-    this.node.contentWindow.postMessage(msg, '*');
+  postMessage(data) {
+    if(data instanceof Object) data = JSON.stringify(data)
+    this.node.contentWindow.postMessage(data, '*');
   }
   display(show: boolean) {
     if (show) {
@@ -65,12 +66,30 @@ class FrameInstance {
 class HubMenu extends Component {
   props: Object
 
+  handleClick = (action) => () => {
+    const { current } = this.props
+    if (action) {
+      current.postMessage(`{"action":"${action}"}`)
+    }
+  }
   render() {
     const { menu } = this.props
     return (<div className="tab-menu">
       {menu && menu.map((x, i) => {
-        return (<span key={i} className={"menu-btn fa fa-fw fa-" + x.icon} title={x.title}>
-        </span>)
+        let icon = x.icon
+        if (icon) {
+          const parts = icon.split(":")
+          if (parts[0] === "fa") icon = "menu-btn fa fa-fw fa-" + parts[1]
+          else icon = "menu-btn fa fa-fw fa-" + icon
+          return (<span key={i} className={icon} title={x.title} onClick={this.handleClick(x.action)} >
+            {x.name}
+          </span>)
+        }
+        else {
+          return (<span key={i} className="menu-btn menu-name" title={x.title} onClick={this.handleClick(x.action)}>
+            {x.name}
+          </span>)
+        }
       })}
     </div>)
   }
@@ -122,7 +141,7 @@ class HubItemTabs extends Component {
           return (<HubItem key={i} frame={frame} isCurrent={frame === current} onSelect={onSelect} />)
         })}
       </div>
-      <HubMenu menu={current && current.menu} />
+      <HubMenu current={current} menu={current && current.menu} />
     </div>)
   }
 }

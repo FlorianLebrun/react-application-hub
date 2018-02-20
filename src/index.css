@@ -37,6 +37,12 @@
   cursor: pointer;
 }
 
+.react-app-hub .tab-menu .menu-name {
+  font-weight: 600;
+  padding-left:5px;
+  padding-right:5px;
+}
+
 .react-app-hub .tab-menu .menu-btn:hover {
   color: #fff;
 }

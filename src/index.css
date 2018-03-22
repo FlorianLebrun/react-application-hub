@@ -20,33 +20,6 @@
   user-select: none;
 }
 
-.react-app-hub .tab-menu {
-  flex: 0 0 auto;
-  display: flex;
-  padding-left:5px;
-  padding-right:5px;
-  flex-direction: row;
-  align-items: center;
-  color: #ddd;
-  background-color: #222;
-}
-
-.react-app-hub .tab-menu .menu-btn {
-  flex: 0 0 auto;
-  color: #aaa;
-  cursor: pointer;
-}
-
-.react-app-hub .tab-menu .menu-name {
-  font-weight: 600;
-  padding-left:5px;
-  padding-right:5px;
-}
-
-.react-app-hub .tab-menu .menu-btn:hover {
-  color: #fff;
-}
-
 .react-app-hub .tabs-bar {
   flex: 1;
   display: flex;

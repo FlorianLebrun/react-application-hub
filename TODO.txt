@@ -1,0 +1,5 @@
+react-application-hub
+[ ] Gérer un menu d'applications
+[ ] Gérer la sauvegarde des onglet
+[ ] Gérer une popup de confirmation avant la fermeture d'un onglet
+[ ] Faire un readme correct
